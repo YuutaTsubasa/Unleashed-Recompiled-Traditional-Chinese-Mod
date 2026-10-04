@@ -1,4 +1,4 @@
-Sonic Unleashed 繁體中文化 MOD（Unleashed Recompiled 用）v1.5
+Sonic Unleashed 繁體中文化 MOD（Unleashed Recompiled 用）v1.6
 作者：Yuuta Tsubasa
 https://github.com/YuutaTsubasa/Unleashed-Recompiled-Traditional-Chinese-Mod
 ================================================================
@@ -25,6 +25,6 @@ https://github.com/YuutaTsubasa/Unleashed-Recompiled-Traditional-Chinese-Mod
 
 【注意】
 - Unleashed Recompiled 自己的設定選單、安裝器仍為原文（寫在 exe 內）。
-- 本 MOD 會替換根目錄的 Town_Common.ar.00 / SystemCommonCore.ar.00（僅改對話名牌圖），
-  若與其他修改同檔案的 MOD 同時使用，請注意載入順序。
+- 對話名牌圖（索尼克／塔爾斯／奇普）同時以「整檔替換」與「附加封存檔（+Town_Common 等）」
+  兩種方式提供，與其他替換 Town_Common / SystemCommonCore 的 MOD 並用時也能正常顯示。
 - 移除：在 HMM 取消勾選即可，原始遊戲檔不會被修改。

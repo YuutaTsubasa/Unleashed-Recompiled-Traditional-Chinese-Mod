@@ -151,6 +151,7 @@ def main():
             arl_tmp = os.path.join(work, 'shared', name + '.arl')
             decompress(os.path.join(game, name + '.arl'), arl_tmp)
             sizes, names_blob = read_arl(arl_tmp)
+            patched = []  # (name, data) of every replaced file, for the append archive
             for i in range(len(sizes)):
                 src = os.path.join(work, 'shared', f'{name}.ar.{i:02d}')
                 decompress(os.path.join(game, f'{name}.ar.{i:02d}'), src)
@@ -162,6 +163,7 @@ def main():
                         d = images.apply(d, sp)[0]
                         changed = True
                         stats['images'] += 1
+                        patched.append((n, d))
                     entries.append((n, d))
                 if changed:
                     extra, align = ar_extras(src)
@@ -169,6 +171,13 @@ def main():
                     sizes[i] = len(data)
                     open(os.path.join(out, f'{name}.ar.{i:02d}'), 'wb').write(data)
             open(os.path.join(out, name + '.arl'), 'wb').write(write_arl([], sizes) + names_blob)
+            # Also ship the patched files as an HMM append archive (+Name.ar/.arl). The mod loader reads
+            # append archives of every enabled mod before the base archive, so the name plates still apply
+            # when another mod replaces the whole shared archive.
+            if patched:
+                extra, align = ar_extras(os.path.join(work, 'shared', f'{name}.ar.00'))
+                open(os.path.join(out, f'+{name}.ar'), 'wb').write(write_ar(patched, align, extra))
+                open(os.path.join(out, f'+{name}.arl'), 'wb').write(write_arl([n for n, _ in patched], []))
             log(f'  {name}（名牌）')
 
     for f in os.listdir(os.path.join(HERE, 'mod_template')):

@@ -181,8 +181,12 @@ def build_fte_group(fdict, fte_name, fco_names, texts, stats, page_size):
 
 
 # ---------------------------------------------------------------- whole archive
-def build_archive(arc_path, arc_name, texts, stats):
-    """returns (ar bytes, arl bytes) or None when nothing in the archive needs changing"""
+def build_archive(arc_path, arc_name, texts, stats, unsplit=False):
+    """returns (ar bytes, arl bytes) or None when nothing in the archive needs changing.
+
+    unsplit: the archive is a single .ar file (split count 0 in its .arl, e.g. cutscene subtitles)
+    rather than .ar.00 splits; the .arl must say so or the game looks for a missing .ar.00.
+    """
     files = read_ar(arc_path)
     fdict = dict(files)
     ftes = [n for n, _ in files if n.endswith('.fte')]
@@ -227,4 +231,4 @@ def build_archive(arc_path, arc_name, texts, stats):
     entries = [(n, out_files.get(n, fdict.get(n))) for n in names]
     extra, align = ar_extras(arc_path)
     ar = write_ar(entries, align, extra)
-    return ar, write_arl(names, [len(ar)])
+    return ar, write_arl(names, [] if unsplit else [len(ar)])

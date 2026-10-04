@@ -102,7 +102,7 @@ def main():
             decompress(src, dst)
             jobs.append([dst, 'Languages/' + name, name,
                          os.path.join(out, 'Languages', 'Japanese', name + '.ar.00'),
-                         os.path.join(out, 'Languages', 'Japanese', name + '.arl')])
+                         os.path.join(out, 'Languages', 'Japanese', name + '.arl'), False])
 
         # WorldMap: merge DLC versions (when installed) with the base game
         wm_sources = []
@@ -134,10 +134,10 @@ def main():
             decompress(src, dst)
             jobs.append([dst, 'Subtitle/' + name, name,
                          os.path.join(out, 'Inspire', 'subtitle', 'Japanese', name + '.ar'),
-                         os.path.join(out, 'Inspire', 'subtitle', 'Japanese', name + '.arl')])
+                         os.path.join(out, 'Inspire', 'subtitle', 'Japanese', name + '.arl'), True])
 
-        for arc, key, name, out_ar, out_arl in jobs:
-            r = build_archive(arc, name, texts.get(key, {}), stats)
+        for arc, key, name, out_ar, out_arl, unsplit in jobs:
+            r = build_archive(arc, name, texts.get(key, {}), stats, unsplit)
             if r is None:
                 continue
             os.makedirs(os.path.dirname(out_ar), exist_ok=True)

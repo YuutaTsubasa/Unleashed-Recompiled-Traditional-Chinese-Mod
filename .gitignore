@@ -1,0 +1,9 @@
+# generated mod / game data — never commit
+dist/
+*.ar
+*.ar.0*
+*.arl
+*.dds
+*.zip
+__pycache__/
+*.pyc

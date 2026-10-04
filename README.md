@@ -38,7 +38,7 @@ python build_mod.py --game "D:\Games\UnleashedRecompiled" --zip
 
 - Unleashed Recompiled 本身的設定選單與安裝器（寫在 `UnleashedRecomp.exe` 內）仍為原文
 - 原版部分文字的彩色強調與日文注音假名在中文版中移除
-- 對話名牌貼圖同時以整檔替換（`Town_Common`、`SystemCommonCore`）與 HMM 附加封存檔（`+Town_Common` 等）提供，與替換相同檔案的其他 MOD 並用時仍會套用
+- MOD 採用 Hedge Mod Manager 的附加封存檔格式（`+名稱.ar` / `+名稱.arl`），只附加修改過的檔案，不替換原始封存檔
 
 ## 專案結構
 

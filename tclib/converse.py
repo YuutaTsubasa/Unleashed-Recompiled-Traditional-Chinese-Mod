@@ -181,11 +181,12 @@ def build_fte_group(fdict, fte_name, fco_names, texts, stats, page_size):
 
 
 # ---------------------------------------------------------------- whole archive
-def build_archive(arc_path, arc_name, texts, stats, unsplit=False):
-    """returns (ar bytes, arl bytes) or None when nothing in the archive needs changing.
+def build_archive(arc_path, arc_name, texts, stats):
+    """Build the Hedge Mod Manager append archive (+Name.ar / +Name.arl) for one game archive.
 
-    unsplit: the archive is a single .ar file (split count 0 in its .arl, e.g. cutscene subtitles)
-    rather than .ar.00 splits; the .arl must say so or the game looks for a missing .ar.00.
+    Only changed files are included (FCO text, FTE font table, font pages, edited textures);
+    the mod loader reads append archives before the base archive, so they override the originals.
+    Returns (ar bytes, arl bytes) or None when nothing in the archive needs changing.
     """
     files = read_ar(arc_path)
     fdict = dict(files)
@@ -208,7 +209,6 @@ def build_archive(arc_path, arc_name, texts, stats, unsplit=False):
             own = n[:-4] + '.fte'
             groups_by_fte[own if own in fdict else (conv[0] if conv else ftes[0])].append(n)
 
-    page_info = {}
     for fte_name, fco_names in groups_by_fte.items():
         if not fco_names:
             continue
@@ -220,15 +220,8 @@ def build_archive(arc_path, arc_name, texts, stats, unsplit=False):
             of, page_names, orig_pages, pages = build_fte_group(fdict, fte_name, fco_names, texts, local, 1024)
         stats.update(local)
         out_files.update(of)
-        page_info[fte_name] = (page_names, orig_pages)
 
-    names = [n for n, _ in files]
-    for fte_name, (page_names, orig_pages) in page_info.items():
-        names = [n for n in names if not (n.endswith('.dds') and n[:-4] in orig_pages and n[:-4] not in page_names)]
-        for i, pn in enumerate(page_names):
-            if pn + '.dds' not in names:
-                names.insert(names.index(fte_name) + 1 + i, pn + '.dds')
-    entries = [(n, out_files.get(n, fdict.get(n))) for n in names]
+    order = {n: i for i, (n, _) in enumerate(files)}
+    entries = sorted(out_files.items(), key=lambda kv: (order.get(kv[0], len(order)), kv[0]))
     extra, align = ar_extras(arc_path)
-    ar = write_ar(entries, align, extra)
-    return ar, write_arl(names, [] if unsplit else [len(ar)])
+    return write_ar(entries, align, extra), write_arl([n for n, _ in entries], [])

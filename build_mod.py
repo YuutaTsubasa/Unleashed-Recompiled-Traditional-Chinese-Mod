@@ -92,7 +92,9 @@ def main():
     t0 = time.time()
 
     with tempfile.TemporaryDirectory(prefix='unleashed_tc_') as work:
-        jobs = []  # (decompressed archive, text key, archive name, out .ar path, out .arl path)
+        # Every change ships as a Hedge Mod Manager append archive (+Name.ar / +Name.arl) holding only
+        # the modified files; base game archives are never replaced.
+        jobs = []  # (decompressed archive, text key, archive name, output folder)
 
         # language archives
         lang_dir = os.path.join(game, 'Languages', 'Japanese')
@@ -100,9 +102,7 @@ def main():
             name = os.path.basename(src)[:-6]
             dst = os.path.join(work, 'lang', name + '.ar')
             decompress(src, dst)
-            jobs.append([dst, 'Languages/' + name, name,
-                         os.path.join(out, 'Languages', 'Japanese', name + '.ar.00'),
-                         os.path.join(out, 'Languages', 'Japanese', name + '.arl'), False])
+            jobs.append([dst, 'Languages/' + name, name, os.path.join(out, 'Languages', 'Japanese')])
 
         # WorldMap: merge DLC versions (when installed) with the base game
         wm_sources = []
@@ -132,17 +132,15 @@ def main():
             name = os.path.basename(src)[:-3]
             dst = os.path.join(work, 'sub', name + '.ar')
             decompress(src, dst)
-            jobs.append([dst, 'Subtitle/' + name, name,
-                         os.path.join(out, 'Inspire', 'subtitle', 'Japanese', name + '.ar'),
-                         os.path.join(out, 'Inspire', 'subtitle', 'Japanese', name + '.arl'), True])
+            jobs.append([dst, 'Subtitle/' + name, name, os.path.join(out, 'Inspire', 'subtitle', 'Japanese')])
 
-        for arc, key, name, out_ar, out_arl, unsplit in jobs:
-            r = build_archive(arc, name, texts.get(key, {}), stats, unsplit)
+        for arc, key, name, out_dir in jobs:
+            r = build_archive(arc, name, texts.get(key, {}), stats)
             if r is None:
                 continue
-            os.makedirs(os.path.dirname(out_ar), exist_ok=True)
-            open(out_ar, 'wb').write(r[0])
-            open(out_arl, 'wb').write(r[1])
+            os.makedirs(out_dir, exist_ok=True)
+            open(os.path.join(out_dir, f'+{name}.ar'), 'wb').write(r[0])
+            open(os.path.join(out_dir, f'+{name}.arl'), 'wb').write(r[1])
             log(f'  {key}')
 
         # shared archives: only the name plate texture changes
@@ -150,35 +148,22 @@ def main():
         for name in SHARED_ARCHIVES:
             arl_tmp = os.path.join(work, 'shared', name + '.arl')
             decompress(os.path.join(game, name + '.arl'), arl_tmp)
-            sizes, names_blob = read_arl(arl_tmp)
-            patched = []  # (name, data) of every replaced file, for the append archive
+            sizes, _ = read_arl(arl_tmp)
+            patched = []
+            extra, align = {}, 0x40
             for i in range(len(sizes)):
                 src = os.path.join(work, 'shared', f'{name}.ar.{i:02d}')
                 decompress(os.path.join(game, f'{name}.ar.{i:02d}'), src)
-                changed = False
-                entries = []
                 for n, d in read_ar(src):
                     sp = specs.get('ROOT/' + n[:-4]) if n.endswith('.dds') else None
                     if sp:
-                        d = images.apply(d, sp)[0]
-                        changed = True
+                        patched.append((n, images.apply(d, sp)[0]))
                         stats['images'] += 1
-                        patched.append((n, d))
-                    entries.append((n, d))
-                if changed:
-                    extra, align = ar_extras(src)
-                    data = write_ar(entries, align, extra)
-                    sizes[i] = len(data)
-                    open(os.path.join(out, f'{name}.ar.{i:02d}'), 'wb').write(data)
-            open(os.path.join(out, name + '.arl'), 'wb').write(write_arl([], sizes) + names_blob)
-            # Also ship the patched files as an HMM append archive (+Name.ar/.arl). The mod loader reads
-            # append archives of every enabled mod before the base archive, so the name plates still apply
-            # when another mod replaces the whole shared archive.
+                        extra, align = ar_extras(src)
             if patched:
-                extra, align = ar_extras(os.path.join(work, 'shared', f'{name}.ar.00'))
                 open(os.path.join(out, f'+{name}.ar'), 'wb').write(write_ar(patched, align, extra))
                 open(os.path.join(out, f'+{name}.arl'), 'wb').write(write_arl([n for n, _ in patched], []))
-            log(f'  {name}（名牌）')
+                log(f'  {name}（名牌）')
 
     for f in os.listdir(os.path.join(HERE, 'mod_template')):
         shutil.copy(os.path.join(HERE, 'mod_template', f), out)

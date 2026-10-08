@@ -17,6 +17,7 @@ from .dxt import dds_dxt5
 from .fco import read_fco, write_fco, read_fte, write_fte
 
 TOKEN = re.compile(r'\{([ci?])(\d+)\}')  # {?N} = raw code N
+FIXED_GLYPHS = '0123456789-'  # must occupy the first font slots (see build_fte_group)
 
 
 def tokenize(s):
@@ -96,8 +97,10 @@ def build_fte_group(fdict, fte_name, fco_names, texts, stats, page_size):
                     default_h[hh] += len(c['msg'])
     dh = default_h.most_common(1)[0][0] if default_h else 35
 
-    # pass 1: tokenize the Chinese text of every cell
-    glyph_keys = collections.OrderedDict()
+    # pass 1: tokenize the Chinese text of every cell.
+    # The game prints run-time numbers (EXP, rings, prices...) by glyph index: every original FTE
+    # has "0123456789-" right after the button icons, so those slots must keep exactly these glyphs.
+    glyph_keys = collections.OrderedDict(((ch, dh), None) for ch in FIXED_GLYPHS)
     for n, (fhdr, groups) in parsed.items():
         ftexts = texts.get(n, {})
         for gname, cells in groups:

@@ -54,6 +54,10 @@ python build_mod.py --game "D:\Games\UnleashedRecompiled" --zip
 
 譯文中的特殊標記：`{c0}` 換行、`{iN}` 按鈕圖示、`{cN}` / `{?N}` 其他控制碼，修改譯文時請保留。
 
+## 致謝
+
+- **Zexas**：校稿
+
 ## 授權
 
 - 本專案程式碼與譯文：[MIT License](LICENSE)

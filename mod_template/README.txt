@@ -1,5 +1,6 @@
 Sonic Unleashed 繁體中文化 MOD（Unleashed Recompiled 用）v1.8
 作者：Yuuta Tsubasa
+校稿：Zexas
 https://github.com/YuutaTsubasa/Unleashed-Recompiled-Traditional-Chinese-Mod
 ================================================================
 
